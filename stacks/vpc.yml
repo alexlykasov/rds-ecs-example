@@ -1,0 +1,3 @@
+parameters:
+
+  vpcCidr: "10.255.0.0/16"

@@ -1,0 +1,65 @@
+parameters:
+
+  ecsClusterName: "demo-ecs-cluster"
+
+  containerVersion: "latest"
+
+  ecsExecutionRoleArn:
+    resolver: stack-output
+    stack: roles.yml
+    output: ecsExecutionRoleArn
+
+  ecsServiceRoleArn:
+    resolver: stack-output
+    stack: roles.yml
+    output: ecsServiceRoleArn
+
+  applicationSecurityGroup:
+    resolver: stack-output
+    stack: security-groups.yml
+    output: applicationSecurityGroup
+
+  publicSubnetA:
+    resolver: stack-output
+    stack: subnets.yml
+    output: publicSubnetA
+
+  publicSubnetB:
+    resolver: stack-output
+    stack: subnets.yml
+    output: publicSubnetB
+
+  albSecurityGroup:
+    resolver: stack-output
+    stack: security-groups.yml
+    output: albSecurityGroup
+
+  autoScalingRoleArn:
+    resolver: stack-output
+    stack: roles.yml
+    output: autoScalingRoleArn
+
+  vpcId:
+    resolver: stack-output
+    stack: vpc.yml
+    output: vpcId
+
+  RdsMysqlEndpointAddress:
+    resolver: stack-output
+    stack: rds.yml
+    output: RdsMysqlEndpointAddress
+
+  RdsMysqlEndpointPort:
+    resolver: stack-output
+    stack: rds.yml
+    output: RdsMysqlEndpointPort
+
+  secretsManagerId:
+    resolver: stack-output
+    stack: rds.yml
+    output: secretsManagerId
+
+  databaseName:
+    resolver: stack-output
+    stack: rds.yml
+    output: databaseName

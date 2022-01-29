@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "NAT gateways and route tables"
+
+
+Parameters:
+
+  vpcId:
+    Type: String
+
+
+Resources:
+
+  #
+  # ALB security group
+  #
+
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "${AWS::StackName}-alb"
+      VpcId: !Ref vpcId
+      Tags:
+        - Key: Name
+          Value: "Application Load Balancer SG"
+
+  AlbSecurityGroupIngressHttp:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !GetAtt AlbSecurityGroup.GroupId
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: 0.0.0.0/0
+
+  AlbSecurityGroupEgressHttp:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !GetAtt AlbSecurityGroup.GroupId
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      DestinationSecurityGroupId: !GetAtt ApplicationSecurityGroup.GroupId
+
+  #
+  # Application security group
+  #
+
+  ApplicationSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "${AWS::StackName}-app"
+      VpcId: !Ref vpcId
+      Tags:
+        - Key: Name
+          Value: "Application SG"
+
+  ApplicationSgIngressHttp:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !GetAtt ApplicationSecurityGroup.GroupId
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      SourceSecurityGroupId: !GetAtt AlbSecurityGroup.GroupId
+
+  ApplicationSgEgressMysql:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !GetAtt ApplicationSecurityGroup.GroupId
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      DestinationSecurityGroupId: !GetAtt DatabaseSecurityGroup.GroupId
+
+  ApplicationSgEgressHttps:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !GetAtt ApplicationSecurityGroup.GroupId
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      CidrIp: 0.0.0.0/0
+
+  #
+  # RDS security group
+  #
+
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "${AWS::StackName}-rds"
+      VpcId: !Ref vpcId
+      Tags:
+        - Key: Name
+          Value: "RDS SG"
+
+  ApplicationSgIngressMysql:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !GetAtt DatabaseSecurityGroup.GroupId
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      SourceSecurityGroupId: !GetAtt ApplicationSecurityGroup.GroupId
+
+
+Outputs:
+
+  albSecurityGroup:
+    Value: !Ref AlbSecurityGroup
+
+  applicationSecurityGroup:
+    Value: !Ref ApplicationSecurityGroup
+
+  databaseSecurityGroup:
+    Value: !Ref DatabaseSecurityGroup

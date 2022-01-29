@@ -1,0 +1,23 @@
+parameters:
+
+  # valid types are listed here https://aws.amazon.com/rds/instance-types/
+  ec2InstanceType: "db.t3.micro"
+
+  masterUserName: "the_fancy_app"
+
+  databaseName: "demo_db"
+
+  isolatedSubnetA:
+    resolver: stack-output
+    stack: subnets.yml
+    output: isolatedSubnetA
+
+  isolatedSubnetB:
+    resolver: stack-output
+    stack: subnets.yml
+    output: isolatedSubnetB
+
+  databaseSecurityGroup:
+    resolver: stack-output
+    stack: security-groups.yml
+    output: databaseSecurityGroup
