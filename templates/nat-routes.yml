@@ -1,0 +1,175 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "NAT gateways and route tables"
+
+
+Parameters:
+
+  vpcId:
+    Type: String
+
+  internetGatewayId:
+    Type: String
+
+  vpcCidr:
+    Type: String
+    Description: "CIDR of the VPC"
+
+  publicSubnetA:
+    Type: String
+
+  publicSubnetB:
+    Type: String
+
+  privateSubnetA:
+    Type: String
+
+  privateSubnetB:
+    Type: String
+
+  isolatedSubnetA:
+    Type: String
+
+  isolatedSubnetB:
+    Type: String
+
+
+Resources:
+
+  #
+  # Route tables
+  #
+
+  RouteTablePublic:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpcId
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-public"
+
+  RouteTableIsolated:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpcId
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-isolated"
+
+  RouteTablePrivateA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpcId
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-private-a"
+
+  RouteTablePrivateB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpcId
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-private-b"
+
+  #
+  # NAT gateways and their EIPs
+  #
+
+  NatEipA:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: 'EIP for NAT GW in AZ a'
+
+  NatEipB:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: 'EIP for NAT GW in AZ b'
+
+  NatGatewayA:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEipA.AllocationId
+      SubnetId: !Ref publicSubnetA
+      Tags:
+        - Key: Name
+          Value: 'NAT Gateway in AZ a'
+
+  NatGatewayB:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEipB.AllocationId
+      SubnetId: !Ref publicSubnetB
+      Tags:
+        - Key: Name
+          Value: 'NAT Gateway in AZ b'
+
+  #
+  # Routes
+  #
+
+  RouteToPublicFromPublic:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref RouteTablePublic
+      GatewayId: !Ref internetGatewayId
+
+  RouteToPublicFromPrivateA:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref RouteTablePrivateA
+      NatGatewayId: !Ref NatGatewayA
+
+  RouteToPublicFromPrivateB:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref RouteTablePrivateB
+      NatGatewayId: !Ref NatGatewayB
+
+  #
+  # Subnet and route tables associations
+  #
+
+  SubnetRoutePublicA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      SubnetId: !Ref publicSubnetA
+
+  SubnetRoutePublicB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      SubnetId: !Ref publicSubnetB
+
+  SubnetRoutePrivateA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTablePrivateA
+      SubnetId: !Ref privateSubnetA
+
+  SubnetRoutePrivateB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTablePrivateB
+      SubnetId: !Ref privateSubnetB
+
+  SubnetRouteIsolatedA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTableIsolated
+      SubnetId: !Ref isolatedSubnetA
+
+  SubnetRouteIsolatedB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTableIsolated
+      SubnetId: !Ref isolatedSubnetB

@@ -1,0 +1,85 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "RDS instance and other corresponding resources"
+
+
+Parameters:
+
+  ec2InstanceType:
+    Type: String
+    Description: "Type of EC2 instance to run RDS on"
+
+  masterUserName:
+    Type: String
+    Description: "DB user name"
+
+  databaseName:
+    Type: String
+    Description: "Name of the database"
+
+  isolatedSubnetA:
+    Type: String
+    Description: "Isolated subnet in AZ a"
+
+  isolatedSubnetB:
+    Type: String
+    Description: "Isolated subnet in AZ b"
+
+  databaseSecurityGroup:
+    Type: String
+
+
+Resources:
+
+  MysqlPassword:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      GenerateSecretString:
+        SecretStringTemplate: !Join [ '', [ '{"username": "', !Ref masterUserName, '"}' ] ]
+        GenerateStringKey: 'password'
+        PasswordLength: 20
+        ExcludeCharacters: '"@/\'
+
+  RdsSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: !Sub "${AWS::StackName}-sg"
+      DBSubnetGroupName: !Sub "${AWS::StackName}-subnet-group"
+      SubnetIds:
+        - !Ref isolatedSubnetA
+        - !Ref isolatedSubnetB
+
+  RdsMysql:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: !Ref ec2InstanceType
+      DBName: !Ref databaseName
+      Engine: "MySQL"
+      EngineVersion: "8.0.27"
+      StorageType: gp2
+      MasterUsername: !Ref masterUserName
+      MasterUserPassword: !Sub "\{{resolve:secretsmanager:${MysqlPassword}:SecretString:password}}"
+      MultiAZ: True
+      Port: 3306
+      DBSubnetGroupName: !Ref RdsSubnetGroup
+      VPCSecurityGroups:
+        - !Ref databaseSecurityGroup
+      PubliclyAccessible: false
+      AllocatedStorage: 10
+
+
+Outputs:
+
+  RdsMysqlInstanceId:
+    Value: !Ref RdsMysql
+
+  secretsManagerId:
+    Value: !Ref MysqlPassword
+
+  RdsMysqlEndpointAddress:
+    Value: !GetAtt RdsMysql.Endpoint.Address
+
+  RdsMysqlEndpointPort:
+    Value: !GetAtt RdsMysql.Endpoint.Port
+
+  databaseName:
+    Value: !Ref databaseName

@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+
+Parameters:
+
+  vpcCidr:
+    Type: String
+    Description: "CIDR of the VPC"
+
+
+Resources:
+
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref vpcCidr
+      InstanceTenancy: default
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: "ECS & RDS experiment"
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-igw"
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref InternetGateway
+
+
+Outputs:
+
+  vpcId:
+    Value: !Ref Vpc
+
+  vpcCidr:
+    Value: !GetAtt Vpc.CidrBlock
+
+  internetGatewayId:
+    Value: !Ref InternetGateway

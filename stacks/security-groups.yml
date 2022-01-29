@@ -1,0 +1,6 @@
+parameters:
+
+  vpcId:
+    resolver: stack-output
+    stack: vpc.yml
+    output: vpcId

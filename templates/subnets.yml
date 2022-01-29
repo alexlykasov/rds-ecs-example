@@ -1,0 +1,142 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+
+Parameters:
+
+  vpcId:
+    Type: String
+    Description: "Id of our VPC"
+
+  publicSubnetA:
+    Type: String
+    Description: "CIDR block of public subnet in AZ a"
+
+  publicSubnetB:
+    Type: String
+    Description: "CIDR block of public subnet in AZ b"
+
+  privateSubnetA:
+    Type: String
+    Description: "CIDR for private subnet A"
+
+  privateSubnetB:
+    Type: String
+    Description: "CIDR for private subnet B"
+
+  isolatedSubnetA:
+    Type: String
+    Description: "CIDR block of isolated subnet in AZ A"
+
+  isolatedSubnetB:
+    Type: String
+    Description: "CIDR block of isolated subnet in AZ B"
+
+
+Resources:
+
+  # public subnets are used for ALB and NAT gateways
+
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref publicSubnetA
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: !Ref AWS::Region
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref vpcId
+      Tags:
+        - Key: Name
+          Value: "public subnet in AZ A"
+
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref publicSubnetB
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: !Ref AWS::Region
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref vpcId
+      Tags:
+        - Key: Name
+          Value: "public subnet in AZ B"
+
+  # private subnets for the application layer
+
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref privateSubnetA
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: !Ref AWS::Region
+      VpcId: !Ref vpcId
+      Tags:
+        - Key: Name
+          Value: "private subnet in AZ A"
+
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref privateSubnetB
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: !Ref AWS::Region
+      VpcId: !Ref vpcId
+      Tags:
+        - Key: Name
+          Value: "private subnet in AZ B"
+
+  # Isolated subnets to deploy RDS cluster
+
+  IsolatedSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref isolatedSubnetA
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: !Ref AWS::Region
+      VpcId: !Ref vpcId
+      Tags:
+        - Key: Name
+          Value: "isolated subnet in AZ A"
+
+  IsolatedSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref isolatedSubnetB
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: !Ref AWS::Region
+      VpcId: !Ref vpcId
+      Tags:
+        - Key: Name
+          Value: "isolated subnet in AZ B"
+
+
+Outputs:
+
+  publicSubnetA:
+    Value: !Ref PublicSubnetA
+
+  publicSubnetB:
+    Value: !Ref PublicSubnetB
+
+  privateSubnetA:
+    Value: !Ref PrivateSubnetA
+
+  privateSubnetB:
+    Value: !Ref PrivateSubnetB
+
+  isolatedSubnetA:
+    Value: !Ref IsolatedSubnetA
+
+  isolatedSubnetB:
+    Value: !Ref IsolatedSubnetB

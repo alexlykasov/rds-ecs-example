@@ -1,0 +1,46 @@
+parameters:
+
+  vpcId:
+    resolver: stack-output
+    stack: vpc.yml
+    output: vpcId
+
+  vpcCidr:
+    resolver: stack-output
+    stack: vpc.yml
+    output: vpcCidr
+
+  internetGatewayId:
+    resolver: stack-output
+    stack: vpc.yml
+    output: internetGatewayId
+
+  publicSubnetA:
+    resolver: stack-output
+    stack: subnets.yml
+    output: publicSubnetA
+
+  publicSubnetB:
+    resolver: stack-output
+    stack: subnets.yml
+    output: publicSubnetB
+
+  privateSubnetA:
+    resolver: stack-output
+    stack: subnets.yml
+    output: privateSubnetA
+
+  privateSubnetB:
+    resolver: stack-output
+    stack: subnets.yml
+    output: privateSubnetB
+
+  isolatedSubnetA:
+    resolver: stack-output
+    stack: subnets.yml
+    output: isolatedSubnetA
+
+  isolatedSubnetB:
+    resolver: stack-output
+    stack: subnets.yml
+    output: isolatedSubnetB

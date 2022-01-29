@@ -1,0 +1,19 @@
+
+parameters:
+
+  vpcId:
+    resolver: stack-output
+    stack: vpc.yml
+    output: vpcId
+
+  publicSubnetA: "10.255.1.0/26"
+
+  publicSubnetB: "10.255.1.64/26"
+
+  privateSubnetA: "10.255.2.0/26"
+
+  privateSubnetB: "10.255.2.64/26"
+
+  isolatedSubnetA: "10.255.3.0/26"
+
+  isolatedSubnetB: "10.255.3.64/26"
